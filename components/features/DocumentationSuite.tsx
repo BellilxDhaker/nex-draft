@@ -1,17 +1,51 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
+import { motion } from "framer-motion";
+import {
+  Bot,
+  CheckCircle2,
+  Database,
+  FileText,
+  Layers,
+  Plug,
+  Ruler,
+  Settings2,
+} from "lucide-react";
 
 export default function DocumentationSuite() {
   const documentTypes = [
-    { icon: '📋', title: 'Product Requirements', description: 'Comprehensive PRDs' },
-    { icon: '🏗️', title: 'System Architecture', description: 'Scalable designs' },
-    { icon: '📐', title: 'Technical Specifications', description: 'Detailed specs' },
-    { icon: '🗄️', title: 'Database Design', description: 'Schema & structure' },
-    { icon: '🔌', title: 'API Contracts', description: 'OpenAPI specs' },
-    { icon: '✓', title: 'Development Tasks', description: 'Sprint ready' },
-    { icon: '🤖', title: 'AI Prompts', description: 'Optimized prompts' },
-    { icon: '⚙️', title: 'AI Agent Rules', description: 'Agent behaviors' },
+    {
+      icon: FileText,
+      title: "Product Requirements",
+      description: "Comprehensive PRDs",
+    },
+    {
+      icon: Layers,
+      title: "System Architecture",
+      description: "Scalable designs",
+    },
+    {
+      icon: Ruler,
+      title: "Technical Specifications",
+      description: "Detailed specs",
+    },
+    {
+      icon: Database,
+      title: "Database Design",
+      description: "Schema & structure",
+    },
+    { icon: Plug, title: "API Contracts", description: "OpenAPI specs" },
+    {
+      icon: CheckCircle2,
+      title: "Development Tasks",
+      description: "Sprint ready",
+    },
+    { icon: Bot, title: "AI Prompts", description: "Optimized prompts" },
+    {
+      icon: Settings2,
+      title: "AI Agent Rules",
+      description: "Agent behaviors",
+    },
   ];
 
   const containerVariants = {
@@ -46,15 +80,13 @@ export default function DocumentationSuite() {
           viewport={{ once: true }}
         >
           {/* Title */}
-          <motion.div
-            className="text-center space-y-4"
-            variants={itemVariants}
-          >
+          <motion.div className="text-center space-y-4" variants={itemVariants}>
             <h2 className="text-4xl md:text-5xl font-bold text-primary">
               Everything required before a single line of code.
             </h2>
             <p className="text-lg text-primary/60 max-w-2xl mx-auto">
-              Generated documentation suite that covers the complete engineering spectrum
+              Generated documentation suite that covers the complete engineering
+              spectrum
             </p>
           </motion.div>
 
@@ -71,9 +103,9 @@ export default function DocumentationSuite() {
               >
                 <motion.div
                   className="glass rounded-2xl p-6 h-full flex flex-col items-center text-center cursor-pointer"
-                  whileHover={{ 
+                  whileHover={{
                     y: -12,
-                    boxShadow: '0 20px 40px rgba(42, 79, 142, 0.15)',
+                    boxShadow: "0 20px 40px rgba(42, 79, 142, 0.15)",
                   }}
                 >
                   {/* Animated Background Gradient */}
@@ -81,10 +113,10 @@ export default function DocumentationSuite() {
 
                   {/* Icon */}
                   <motion.div
-                    className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-300"
+                    className="mb-4 group-hover:scale-110 transition-transform duration-300"
                     whileHover={{ rotate: 10 }}
                   >
-                    {doc.icon}
+                    <doc.icon className="h-11 w-11 text-primary" />
                   </motion.div>
 
                   {/* Title */}
@@ -93,9 +125,7 @@ export default function DocumentationSuite() {
                   </h3>
 
                   {/* Description */}
-                  <p className="text-sm text-primary/60">
-                    {doc.description}
-                  </p>
+                  <p className="text-sm text-primary/60">{doc.description}</p>
 
                   {/* Hover Effect Border */}
                   <div className="absolute inset-0 rounded-2xl border-2 border-transparent bg-gradient-to-r from-primary via-accent to-cyan group-hover:border-opacity-100 transition-all duration-300 opacity-0 group-hover:opacity-20" />
