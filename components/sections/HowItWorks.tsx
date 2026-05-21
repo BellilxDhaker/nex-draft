@@ -1,26 +1,30 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
+import { motion } from "framer-motion";
+import { Bot, Lightbulb, Zap } from "lucide-react";
 
 export default function HowItWorks() {
   const steps = [
     {
-      title: 'Idea Input',
-      description: 'Users describe their startup or application in natural language.',
-      icon: '💡',
-      color: 'from-primary to-accent',
+      title: "Idea Input",
+      description:
+        "Users describe their startup or application in natural language.",
+      icon: Lightbulb,
+      color: "from-primary to-accent",
     },
     {
-      title: 'AI Blueprint Generation',
-      description: 'NexDraft orchestrates specialized AI agents to generate complete engineering documentation.',
-      icon: '🤖',
-      color: 'from-accent to-cyan',
+      title: "AI Blueprint Generation",
+      description:
+        "NexDraft orchestrates specialized AI agents to generate complete engineering documentation.",
+      icon: Bot,
+      color: "from-accent to-cyan",
     },
     {
-      title: 'Accelerated Development',
-      description: 'Teams feed outputs directly into Cursor, Windsurf, and AI coding agents.',
-      icon: '⚡',
-      color: 'from-cyan to-primary',
+      title: "Accelerated Development",
+      description:
+        "Teams feed outputs directly into Cursor, Windsurf, and AI coding agents.",
+      icon: Zap,
+      color: "from-cyan to-primary",
     },
   ];
 
@@ -55,15 +59,13 @@ export default function HowItWorks() {
           viewport={{ once: true }}
         >
           {/* Title */}
-          <motion.div
-            className="text-center space-y-4"
-            variants={itemVariants}
-          >
+          <motion.div className="text-center space-y-4" variants={itemVariants}>
             <h2 className="text-4xl md:text-5xl font-bold text-primary">
               Designed for the AI Development Era
             </h2>
             <p className="text-lg text-primary/60 max-w-2xl mx-auto">
-              A seamless workflow that transforms ideas into production-ready blueprints
+              A seamless workflow that transforms ideas into production-ready
+              blueprints
             </p>
           </motion.div>
 
@@ -88,10 +90,10 @@ export default function HowItWorks() {
                 >
                   {/* Icon Circle */}
                   <motion.div
-                    className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center text-3xl mb-4 shadow-lg`}
+                    className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center mb-4 shadow-lg`}
                     whileHover={{ scale: 1.1, rotate: 5 }}
                   >
-                    {step.icon}
+                    <step.icon className="h-8 w-8 text-white" />
                   </motion.div>
 
                   {/* Number */}

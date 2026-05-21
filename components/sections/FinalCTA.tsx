@@ -1,6 +1,7 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
+import { motion } from "framer-motion";
+import { CheckCircle2 } from "lucide-react";
 
 export default function FinalCTA() {
   const containerVariants = {
@@ -35,10 +36,7 @@ export default function FinalCTA() {
         viewport={{ once: true }}
       >
         {/* Main Headline */}
-        <motion.h2
-          className="gradient-text-hero mb-6"
-          variants={itemVariants}
-        >
+        <motion.h2 className="gradient-text-hero mb-6" variants={itemVariants}>
           Build software with complete engineering clarity.
         </motion.h2>
 
@@ -47,7 +45,8 @@ export default function FinalCTA() {
           className="text-xl md:text-2xl text-primary/70 mb-12 leading-relaxed"
           variants={itemVariants}
         >
-          Generate the blueprint before writing the code. Start your free trial today and experience the future of AI-native development.
+          Generate the blueprint before writing the code. Start your free trial
+          today and experience the future of AI-native development.
         </motion.p>
 
         {/* CTAs */}
@@ -76,8 +75,10 @@ export default function FinalCTA() {
           className="mt-12 flex items-center justify-center gap-2 text-sm text-primary/60"
           variants={itemVariants}
         >
-          <span>✓</span>
-          <span>14-day free trial • No credit card required • Cancel anytime</span>
+          <CheckCircle2 className="h-4 w-4 text-cyan" />
+          <span>
+            14-day free trial • No credit card required • Cancel anytime
+          </span>
         </motion.div>
       </motion.div>
     </section>

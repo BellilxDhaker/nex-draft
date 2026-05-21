@@ -1,55 +1,56 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
+import { motion } from "framer-motion";
+import { Check } from "lucide-react";
 
 export default function Pricing() {
   const plans = [
     {
-      name: 'Starter',
-      price: '$29',
-      period: '/month',
-      description: 'Perfect for indie developers and small teams',
+      name: "Starter",
+      price: "$29",
+      period: "/month",
+      description: "Perfect for indie developers and small teams",
       highlighted: false,
       features: [
-        '100 AI document generations/month',
-        '5 projects',
-        'Basic AI assistance',
-        'Document templates',
-        'Email support',
+        "100 AI document generations/month",
+        "5 projects",
+        "Basic AI assistance",
+        "Document templates",
+        "Email support",
       ],
     },
     {
-      name: 'Pro',
-      price: '$99',
-      period: '/month',
-      description: 'For growing teams and ambitious startups',
+      name: "Pro",
+      price: "$99",
+      period: "/month",
+      description: "For growing teams and ambitious startups",
       highlighted: true,
       features: [
-        'Unlimited AI document generations',
-        'Unlimited projects',
-        'Advanced AI agent rules',
-        'Semantic document chat',
-        'System design diagrams',
-        'Advanced exports',
-        'Team collaboration',
-        'Priority AI processing',
-        '24/7 support',
+        "Unlimited AI document generations",
+        "Unlimited projects",
+        "Advanced AI agent rules",
+        "Semantic document chat",
+        "System design diagrams",
+        "Advanced exports",
+        "Team collaboration",
+        "Priority AI processing",
+        "24/7 support",
       ],
     },
     {
-      name: 'Enterprise',
-      price: 'Custom',
-      period: 'pricing',
-      description: 'For large organizations with custom needs',
+      name: "Enterprise",
+      price: "Custom",
+      period: "pricing",
+      description: "For large organizations with custom needs",
       highlighted: false,
       features: [
-        'Everything in Pro',
-        'Dedicated account manager',
-        'Custom integrations',
-        'SLA guarantee',
-        'Advanced security',
-        'On-premise options',
-        'Custom training',
+        "Everything in Pro",
+        "Dedicated account manager",
+        "Custom integrations",
+        "SLA guarantee",
+        "Advanced security",
+        "On-premise options",
+        "Custom training",
       ],
     },
   ];
@@ -85,15 +86,13 @@ export default function Pricing() {
           viewport={{ once: true }}
         >
           {/* Title */}
-          <motion.div
-            className="text-center space-y-4"
-            variants={itemVariants}
-          >
+          <motion.div className="text-center space-y-4" variants={itemVariants}>
             <h2 className="text-4xl md:text-5xl font-bold text-primary">
               Simple, Transparent Pricing
             </h2>
             <p className="text-lg text-primary/60 max-w-2xl mx-auto">
-              Choose the plan that fits your team. All plans include a 14-day free trial.
+              Choose the plan that fits your team. All plans include a 14-day
+              free trial.
             </p>
           </motion.div>
 
@@ -121,14 +120,14 @@ export default function Pricing() {
                 <motion.div
                   className={`relative rounded-2xl p-8 h-full flex flex-col border ${
                     plan.highlighted
-                      ? 'bg-white border-2 border-accent shadow-premium-lg'
-                      : 'bg-white border border-soft shadow-premium'
+                      ? "bg-white border-2 border-accent shadow-premium-lg"
+                      : "bg-white border border-soft shadow-premium"
                   }`}
                   whileHover={{
                     y: -12,
                     boxShadow: plan.highlighted
-                      ? '0 40px 80px rgba(79, 109, 255, 0.25)'
-                      : '0 20px 40px rgba(42, 79, 142, 0.15)',
+                      ? "0 40px 80px rgba(79, 109, 255, 0.25)"
+                      : "0 20px 40px rgba(42, 79, 142, 0.15)",
                   }}
                 >
                   {/* Badge for Pro */}
@@ -161,14 +160,14 @@ export default function Pricing() {
                   {/* CTA Button */}
                   <motion.button
                     className={`w-full py-3 rounded-lg font-semibold mb-8 transition-all duration-200 ${
-                      plan.highlighted
-                        ? 'button-primary'
-                        : 'button-secondary'
+                      plan.highlighted ? "button-primary" : "button-secondary"
                     }`}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    {plan.name === 'Enterprise' ? 'Contact Sales' : 'Start Free'}
+                    {plan.name === "Enterprise"
+                      ? "Contact Sales"
+                      : "Start Free"}
                   </motion.button>
 
                   {/* Features List */}
@@ -179,7 +178,7 @@ export default function Pricing() {
                         className="flex items-start gap-3"
                         whileHover={{ x: 4 }}
                       >
-                        <span className="text-cyan mt-1">✓</span>
+                        <Check className="h-4 w-4 text-cyan mt-1" />
                         <span className="text-primary/70 text-sm">
                           {feature}
                         </span>
