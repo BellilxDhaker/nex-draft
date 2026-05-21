@@ -1,14 +1,15 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
+import { motion } from "framer-motion";
+import { FileText } from "lucide-react";
 
 export default function Hero() {
   const floatingDocuments = [
-    { label: 'PRD.md', delay: 0 },
-    { label: 'SYSTEM-DESIGN.md', delay: 0.1 },
-    { label: 'TECH-SPEC.md', delay: 0.2 },
-    { label: 'TASKS.md', delay: 0.3 },
-    { label: 'PROMPTS.md', delay: 0.4 },
+    { label: "PRD.md", delay: 0 },
+    { label: "SYSTEM-DESIGN.md", delay: 0.1 },
+    { label: "TECH-SPEC.md", delay: 0.2 },
+    { label: "TASKS.md", delay: 0.3 },
+    { label: "PROMPTS.md", delay: 0.4 },
   ];
 
   const containerVariants = {
@@ -70,7 +71,9 @@ export default function Hero() {
               className="text-lg md:text-xl text-primary/70 leading-relaxed max-w-lg"
               variants={itemVariants}
             >
-              NexDraft generates production-ready PRDs, system architectures, technical specifications, AI prompts, and implementation plans in minutes — designed for modern AI-assisted development workflows.
+              NexDraft generates production-ready PRDs, system architectures,
+              technical specifications, AI prompts, and implementation plans in
+              minutes — designed for modern AI-assisted development workflows.
             </motion.p>
 
             {/* CTAs */}
@@ -112,7 +115,7 @@ export default function Hero() {
               <motion.div
                 key={doc.label}
                 className="absolute glass rounded-lg px-4 py-2 text-xs font-mono text-primary"
-                animate={{ 
+                animate={{
                   y: [0, -30, 0],
                   x: [0, Math.random() * 20 - 10, 0],
                   rotate: [0, 2, 0],
@@ -127,7 +130,10 @@ export default function Hero() {
                   left: `${10 + i * 15}%`,
                 }}
               >
-                📄 {doc.label}
+                <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-primary/70" />
+                  <span>{doc.label}</span>
+                </div>
               </motion.div>
             ))}
 
@@ -137,15 +143,21 @@ export default function Hero() {
               animate={{ y: [0, 5, 0] }}
               transition={{ duration: 7, repeat: Infinity, delay: 0.3 }}
             >
-              <div className="text-xs font-semibold text-primary/80">AI Activity</div>
+              <div className="text-xs font-semibold text-primary/80">
+                AI Activity
+              </div>
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-accent rounded-full animate-pulse" />
-                  <span className="text-xs text-primary/60">Generating PRD...</span>
+                  <span className="text-xs text-primary/60">
+                    Generating PRD...
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-cyan rounded-full" />
-                  <span className="text-xs text-primary/60">System Design ready</span>
+                  <span className="text-xs text-primary/60">
+                    System Design ready
+                  </span>
                 </div>
               </div>
             </motion.div>
