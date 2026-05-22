@@ -17,34 +17,50 @@ export default function DocumentationSuite() {
     {
       icon: FileText,
       title: "Product Requirements",
-      description: "Comprehensive PRDs",
+      description:
+        "Detailed PRDs with user stories, acceptance criteria, and success metrics aligned to business objectives",
     },
     {
       icon: Layers,
       title: "System Architecture",
-      description: "Scalable designs",
+      description:
+        "Scalable, maintainable architecture diagrams with component interactions and deployment strategies",
     },
     {
       icon: Ruler,
       title: "Technical Specifications",
-      description: "Detailed specs",
+      description:
+        "In-depth implementation guides covering technologies, dependencies, and integration points",
     },
     {
       icon: Database,
       title: "Database Design",
-      description: "Schema & structure",
+      description:
+        "Normalized schema designs with relationships, indexing strategies, and performance optimization",
     },
-    { icon: Plug, title: "API Contracts", description: "OpenAPI specs" },
+    {
+      icon: Plug,
+      title: "API Contracts",
+      description:
+        "Complete API documentation with endpoints, request/response schemas, error handling, and authentication",
+    },
     {
       icon: CheckCircle2,
       title: "Development Tasks",
-      description: "Sprint ready",
+      description:
+        "Sprint-ready tickets with estimation, dependencies, acceptance criteria, and testing requirements",
     },
-    { icon: Bot, title: "AI Prompts", description: "Optimized prompts" },
+    {
+      icon: Bot,
+      title: "AI Prompts",
+      description:
+        "Fine-tuned prompts for code generation, documentation, testing, and architectural decisions",
+    },
     {
       icon: Settings2,
       title: "AI Agent Rules",
-      description: "Agent behaviors",
+      description:
+        "Governance frameworks and behavioral rules for autonomous development and quality assurance workflows",
     },
   ];
 
@@ -82,11 +98,13 @@ export default function DocumentationSuite() {
           {/* Title */}
           <motion.div className="text-center space-y-4" variants={itemVariants}>
             <h2 className="text-4xl md:text-5xl font-bold text-primary">
-              Everything required before a single line of code.
+              Enterprise-Grade Foundation Before You Code
             </h2>
-            <p className="text-lg text-primary/60 max-w-2xl mx-auto">
-              Generated documentation suite that covers the complete engineering
-              spectrum
+            <p className="text-lg text-primary/60 max-w-3xl mx-auto">
+              Comprehensive, AI-generated documentation suite that spans the
+              complete engineering spectrum—from architectural blueprints to
+              actionable development tasks, ensuring your team has everything
+              needed for success.
             </p>
           </motion.div>
 
@@ -120,12 +138,14 @@ export default function DocumentationSuite() {
                   </motion.div>
 
                   {/* Title */}
-                  <h3 className="text-lg font-bold text-primary mb-1">
+                  <h3 className="text-lg font-bold text-primary mb-2">
                     {doc.title}
                   </h3>
 
                   {/* Description */}
-                  <p className="text-sm text-primary/60">{doc.description}</p>
+                  <p className="text-sm text-primary/70 leading-relaxed">
+                    {doc.description}
+                  </p>
 
                   {/* Hover Effect Border */}
                   <div className="absolute inset-0 rounded-2xl border-2 border-transparent bg-gradient-to-r from-primary via-accent to-cyan group-hover:border-opacity-100 transition-all duration-300 opacity-0 group-hover:opacity-20" />
