@@ -23,8 +23,8 @@ export default function Home() {
       <Navbar />
       <Hero />
       <SocialProof />
-      <HowItWorks />
       <DocumentationSuite />
+      <HowItWorks />
       <FeatureShowcase />
       <DashboardPreview />
       <Pricing />
