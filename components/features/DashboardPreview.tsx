@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
+import { motion } from "framer-motion";
 
 export default function DashboardPreview() {
   const containerVariants = {
@@ -27,23 +27,18 @@ export default function DashboardPreview() {
           viewport={{ once: true }}
         >
           {/* Title */}
-          <motion.div
-            className="text-center space-y-4"
-            variants={itemVariants}
-          >
+          <motion.div className="text-center space-y-4" variants={itemVariants}>
             <h2 className="text-4xl md:text-5xl font-bold text-primary">
               The NexDraft Platform
             </h2>
             <p className="text-lg text-primary/60 max-w-2xl mx-auto">
-              Sophisticated, intelligent workspace for generating production-ready engineering blueprints
+              Sophisticated, intelligent workspace for generating
+              production-ready engineering blueprints
             </p>
           </motion.div>
 
           {/* Dashboard Container */}
-          <motion.div
-            className="relative"
-            variants={itemVariants}
-          >
+          <motion.div className="relative" variants={itemVariants}>
             {/* Outer Glow */}
             <motion.div
               className="absolute inset-0 bg-gradient-to-r from-primary/20 via-accent/20 to-cyan/20 blur-3xl rounded-3xl"
@@ -54,13 +49,15 @@ export default function DashboardPreview() {
             {/* Main Dashboard Card */}
             <motion.div
               className="relative bg-white rounded-3xl border border-soft shadow-premium-lg overflow-hidden"
-              whileHover={{ boxShadow: '0 40px 80px rgba(42, 79, 142, 0.2)' }}
+              whileHover={{ boxShadow: "0 40px 80px rgba(42, 79, 142, 0.2)" }}
             >
               {/* Header */}
               <div className="bg-gradient-to-r from-primary/10 to-accent/10 border-b border-soft px-8 py-6 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-3 h-3 rounded-full bg-primary" />
-                  <div className="font-semibold text-primary">NexDraft Dashboard</div>
+                  <div className="font-semibold text-primary">
+                    NexDraft Dashboard
+                  </div>
                 </div>
                 <div className="flex gap-2">
                   <div className="w-2 h-2 rounded-full bg-yellow-400" />
@@ -103,7 +100,9 @@ export default function DashboardPreview() {
                       animate={{ y: [0, -5, 0] }}
                       transition={{ duration: 3, repeat: Infinity }}
                     >
-                      <div className="text-xs font-semibold text-primary/60 mb-2">AI Processing</div>
+                      <div className="text-xs font-semibold text-primary/60 mb-2">
+                        AI Processing
+                      </div>
                       <div className="space-y-1">
                         <div className="h-2 bg-primary/20 rounded-full w-3/4" />
                         <div className="h-2 bg-accent/20 rounded-full w-1/2" />
@@ -113,9 +112,15 @@ export default function DashboardPreview() {
                     <motion.div
                       className="bg-gradient-to-br from-cyan/5 to-primary/5 rounded-lg p-4 border border-soft"
                       animate={{ y: [0, 5, 0] }}
-                      transition={{ duration: 3.5, repeat: Infinity, delay: 0.5 }}
+                      transition={{
+                        duration: 3.5,
+                        repeat: Infinity,
+                        delay: 0.5,
+                      }}
                     >
-                      <div className="text-xs font-semibold text-primary/60 mb-2">Documents</div>
+                      <div className="text-xs font-semibold text-primary/60 mb-2">
+                        Documents
+                      </div>
                       <div className="space-y-1">
                         <div className="h-2 bg-cyan/20 rounded-full w-full" />
                         <div className="h-2 bg-accent/20 rounded-full w-4/5" />
