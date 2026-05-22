@@ -82,18 +82,43 @@ export default function HowItWorks() {
                 key={step.title}
                 className="relative"
                 variants={itemVariants}
+                whileHover="cardHover"
+                initial="cardRest"
               >
                 {/* Step Card */}
                 <motion.div
-                  className="card-premium h-full"
-                  whileHover={{ y: -8 }}
+                  className="card-premium h-full relative overflow-hidden group"
+                  variants={{
+                    cardRest: { y: 0 },
+                    cardHover: { y: -8 },
+                  }}
                 >
+                  {/* Download Progress Line - Bottom Edge */}
+                  <motion.div
+                    className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-accent via-cyan to-transparent"
+                    variants={{
+                      cardRest: { scaleX: 0, transformOrigin: "left" },
+                      cardHover: { scaleX: 1 },
+                    }}
+                    transition={{ duration: 0.6 }}
+                  />
+
                   {/* Icon Circle */}
                   <motion.div
                     className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center mb-4 shadow-lg`}
-                    whileHover={{ scale: 1.1, rotate: 5 }}
+                    variants={{
+                      cardRest: { scale: 1, rotate: 0, y: 0 },
+                      cardHover: { scale: 1.1, rotate: 5, y: -4 },
+                    }}
                   >
-                    <step.icon className="h-8 w-8 text-white" />
+                    <motion.div
+                      variants={{
+                        cardRest: { scale: 1, rotate: 0 },
+                        cardHover: { scale: 1.15, rotate: 10 },
+                      }}
+                    >
+                      <step.icon className="h-8 w-8 text-white" />
+                    </motion.div>
                   </motion.div>
 
                   {/* Number */}
