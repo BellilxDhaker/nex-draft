@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -67,13 +68,17 @@ export default function Navbar() {
 
           {/* Buttons */}
           <div className="flex items-center gap-3">
-            <button className="hidden sm:inline-block button-ghost text-sm">
+            <Link
+              href="/auth/login"
+              className="hidden sm:inline-block button-ghost text-sm"
+            >
               Sign In
-            </button>
+            </Link>
             <motion.button
               className="button-primary text-sm"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              onClick={() => (window.location.href = "/auth/login")}
             >
               Start Free
             </motion.button>
