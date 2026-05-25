@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { FileText, Sparkles } from "lucide-react";
+import Link from "next/link";
 
 export default function Hero() {
   const containerVariants = {
@@ -128,13 +129,15 @@ export default function Hero() {
               className="flex flex-col sm:flex-row gap-4 justify-center"
               variants={itemVariants}
             >
-              <motion.button
-                className="button-primary px-8 py-4 text-base"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Start Building
-              </motion.button>
+              <Link href="/auth/login">
+                <motion.button
+                  className="button-primary px-8 py-4 text-base"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Start Building
+                </motion.button>
+              </Link>
               <motion.button
                 className="button-secondary px-8 py-4 text-base"
                 whileHover={{ scale: 1.05 }}
