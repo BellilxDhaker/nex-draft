@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { AlertCircle } from "lucide-react";
 import Image from "next/image";
 
-export default function AuthErrorPage() {
+function AuthErrorContent() {
   const searchParams = useSearchParams();
   const [error, setError] = useState("");
 
@@ -20,7 +20,6 @@ export default function AuthErrorPage() {
         OAuthCallback: "There was an error with the OAuth callback.",
         OAuthCreateAccount: "Could not create user account.",
         EmailCreateAccount: "Could not create user account.",
-        Callback: "Callback error occurred.",
         EmailSignInError: "Could not send magic link.",
         CredentialsSignin: "Invalid credentials.",
         SessionCallback: "Session error occurred.",
@@ -74,5 +73,13 @@ export default function AuthErrorPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AuthErrorPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen" />}>
+      <AuthErrorContent />
+    </Suspense>
   );
 }
