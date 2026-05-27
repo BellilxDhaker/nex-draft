@@ -9,6 +9,10 @@ export function AuthForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [emailSent, setEmailSent] = useState(false);
+  const appOrigin =
+    process.env.NODE_ENV === "development"
+      ? process.env.NEXT_PUBLIC_APP_URL_LOCAL || window.location.origin
+      : process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,7 +23,7 @@ export function AuthForm() {
       const { error: authError } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: `${appOrigin}/auth/callback`,
         },
       });
 
@@ -42,7 +46,7 @@ export function AuthForm() {
     const { error: authError } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${appOrigin}/auth/callback`,
       },
     });
 
