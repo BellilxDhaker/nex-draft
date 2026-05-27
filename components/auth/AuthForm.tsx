@@ -10,9 +10,13 @@ export function AuthForm() {
   const [error, setError] = useState("");
   const [emailSent, setEmailSent] = useState(false);
   const appOrigin =
-    process.env.NODE_ENV === "development"
-      ? process.env.NEXT_PUBLIC_APP_URL_LOCAL || window.location.origin
-      : process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
+    typeof window === "undefined"
+      ? process.env.NEXT_PUBLIC_APP_URL ||
+        process.env.NEXT_PUBLIC_APP_URL_LOCAL ||
+        ""
+      : process.env.NODE_ENV === "development"
+        ? process.env.NEXT_PUBLIC_APP_URL_LOCAL || window.location.origin
+        : process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
