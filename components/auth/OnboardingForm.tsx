@@ -30,17 +30,38 @@ export function OnboardingForm({ defaultName = "" }: OnboardingFormProps) {
     setError("");
 
     try {
-      const { error: updateError } = await supabase.auth.updateUser({
-        data: {
-          name: formData.name,
-          username: formData.username,
-          isOnboarded: true,
-          plan: DEFAULT_PLAN,
-        },
+      const { data: authData, error: authError } =
+        await supabase.auth.getUser();
+
+      if (authError || !authData.user) {
+        throw new Error(authError?.message || "Unable to load user.");
+      }
+
+      const authUser = authData.user;
+      const providerAvatar =
+        (authUser.user_metadata?.avatar_url as string | undefined) ||
+        (authUser.user_metadata?.picture as string | undefined) ||
+        (authUser.user_metadata?.image as string | undefined) ||
+        null;
+
+      const trimmedName = formData.name.trim();
+      const nameParts = trimmedName.split(/\s+/).filter(Boolean);
+      const firstName = nameParts[0] || "";
+      const lastName = nameParts.slice(1).join(" ");
+
+      const { error: profileError } = await supabase.from("profiles").upsert({
+        id: authUser.id,
+        email: authUser.email || null,
+        first_name: firstName || null,
+        last_name: lastName || null,
+        username: formData.username.trim() || null,
+        avatar_url: providerAvatar,
+        plan: DEFAULT_PLAN,
+        is_onboarded: true,
       });
 
-      if (updateError) {
-        throw new Error(updateError.message);
+      if (profileError) {
+        throw new Error(profileError.message);
       }
 
       router.push("/dashboard");
