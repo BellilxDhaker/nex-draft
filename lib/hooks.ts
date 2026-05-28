@@ -7,8 +7,11 @@ import { DEFAULT_PLAN, FEATURE_ACCESS } from "@/lib/plans";
 interface UserData {
   id: string;
   email: string;
-  name: string | null;
+  firstName: string;
+  lastName: string;
   username: string | null;
+  bio: string | null;
+  avatarUrl: string | null;
   isOnboarded: boolean;
   plan: string;
 }
@@ -23,26 +26,75 @@ export function useUser() {
 
     async function fetchUser() {
       try {
-        const { data, error: authError } = await supabase.auth.getUser();
+        const { data: authData, error: authError } =
+          await supabase.auth.getUser();
 
         if (!isMounted) return;
 
-        if (authError || !data.user) {
+        if (authError || !authData.user) {
           setUser(null);
           setLoading(false);
           return;
         }
 
-        const metadata = data.user.user_metadata || {};
+        const authUser = authData.user;
+        const providerAvatar =
+          (authUser.user_metadata?.avatar_url as string | undefined) ||
+          (authUser.user_metadata?.picture as string | undefined) ||
+          (authUser.user_metadata?.image as string | undefined) ||
+          null;
+
+        const { data: profileData, error: profileError } = await supabase
+          .from("profiles")
+          .select(
+            "id,email,first_name,last_name,username,bio,avatar_url,plan,is_onboarded",
+          )
+          .eq("id", authUser.id)
+          .maybeSingle();
+
+        let profile = profileData;
+
+        if (!profileData && !profileError) {
+          const { data: createdProfile, error: createError } = await supabase
+            .from("profiles")
+            .upsert({
+              id: authUser.id,
+              email: authUser.email || null,
+              avatar_url: providerAvatar,
+            })
+            .select(
+              "id,email,first_name,last_name,username,bio,avatar_url,plan,is_onboarded",
+            )
+            .single();
+
+          if (createError) {
+            throw new Error(createError.message);
+          }
+
+          profile = createdProfile;
+        }
+
+        if (profileError) {
+          throw new Error(profileError.message);
+        }
+
+        if (authUser.email && profile?.email !== authUser.email) {
+          await supabase
+            .from("profiles")
+            .update({ email: authUser.email })
+            .eq("id", authUser.id);
+        }
 
         setUser({
-          id: data.user.id,
-          email: data.user.email || "",
-          name:
-            (metadata.name as string) || (metadata.full_name as string) || null,
-          username: (metadata.username as string) || null,
-          isOnboarded: Boolean(metadata.isOnboarded),
-          plan: (metadata.plan as string) || DEFAULT_PLAN,
+          id: authUser.id,
+          email: authUser.email || profile?.email || "",
+          firstName: profile?.first_name || "",
+          lastName: profile?.last_name || "",
+          username: profile?.username || null,
+          bio: profile?.bio || null,
+          avatarUrl: profile?.avatar_url || providerAvatar,
+          isOnboarded: Boolean(profile?.is_onboarded),
+          plan: profile?.plan || DEFAULT_PLAN,
         });
       } catch (err) {
         if (isMounted) {
@@ -89,8 +141,18 @@ export function useSubscription() {
 export async function checkFeatureAccess(feature: string): Promise<boolean> {
   try {
     const { data } = await supabase.auth.getUser();
-    const plan =
-      (data.user?.user_metadata?.plan as string | undefined) || DEFAULT_PLAN;
+
+    if (!data.user) {
+      return false;
+    }
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("plan")
+      .eq("id", data.user.id)
+      .maybeSingle();
+
+    const plan = profile?.plan || DEFAULT_PLAN;
     return (
       FEATURE_ACCESS[feature as keyof typeof FEATURE_ACCESS]?.includes(plan) ??
       false
