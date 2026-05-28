@@ -14,15 +14,21 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useUser } from "@/lib/hooks";
+import { supabase } from "@/lib/supabase/client";
 
 export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
   const { user, loading: userLoading } = useUser();
 
-  const displayName = user?.name?.trim() || user?.username?.trim() || "Account";
+  const displayName =
+    [user?.firstName, user?.lastName].filter(Boolean).join(" ").trim() ||
+    user?.username?.trim() ||
+    "Account";
   const email = user?.email?.trim() || "No email";
   const initials = getInitials(displayName, email);
 
@@ -77,6 +83,22 @@ export default function Sidebar() {
     },
   };
 
+  const handleSignOut = async () => {
+    if (isSigningOut) return;
+    setIsSigningOut(true);
+
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      console.error("Sign out failed:", error);
+      // Consider adding a toast notification here
+      setIsSigningOut(false);
+      return;
+    }
+
+    router.push("/auth/login");
+    router.refresh();
+  };
   return (
     <motion.aside
       variants={containerVariants}
@@ -188,6 +210,8 @@ export default function Sidebar() {
         <motion.button
           whileHover={{ x: 5 }}
           whileTap={{ scale: 0.95 }}
+          onClick={handleSignOut}
+          disabled={isSigningOut}
           className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-red-50 hover:text-red-600 transition-all cursor-pointer"
         >
           <LogOut className="w-5 h-5 flex-shrink-0" />
