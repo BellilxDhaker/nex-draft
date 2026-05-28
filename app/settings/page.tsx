@@ -14,6 +14,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import Sidebar from "@/components/layout/Sidebar";
 import { useUser } from "@/lib/hooks";
+import { supabase } from "@/lib/supabase/client";
 
 type ThemeType = "light" | "dark" | "auto";
 
@@ -43,7 +44,12 @@ export default function SettingsPage() {
     firstName: "",
     lastName: "",
     email: "",
+    username: "",
+    bio: "",
   });
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [profileError, setProfileError] = useState("");
+  const [profileSuccess, setProfileSuccess] = useState("");
 
   const [selectedTheme, setSelectedTheme] = useState<ThemeType>("light");
 
@@ -55,23 +61,95 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (!user) {
-      setProfileForm({ firstName: "", lastName: "", email: "" });
+      setProfileForm({
+        firstName: "",
+        lastName: "",
+        email: "",
+        username: "",
+        bio: "",
+      });
       return;
     }
 
-    const fullName = user.name?.trim() || "";
-    const parts = fullName.split(/\s+/).filter(Boolean);
-    const firstName = parts[0] || "";
-    const lastName = parts.slice(1).join(" ");
-
     setProfileForm({
-      firstName,
-      lastName,
+      firstName: user.firstName || "",
+      lastName: user.lastName || "",
       email: user.email || "",
+      username: user.username || "",
+      bio: user.bio || "",
     });
   }, [user]);
 
+  const handleProfileSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setIsSavingProfile(true);
+    setProfileError("");
+    setProfileSuccess("");
+
+    if (!user) {
+      setProfileError("You need to be signed in to update your profile.");
+      setIsSavingProfile(false);
+      return;
+    }
+
+    try {
+      const nextEmail = profileForm.email.trim();
+      const { error: profileError } = await supabase.from("profiles").upsert({
+        id: user.id,
+        email: nextEmail || null,
+        first_name: profileForm.firstName.trim() || null,
+        last_name: profileForm.lastName.trim() || null,
+        username: profileForm.username.trim() || null,
+        bio: profileForm.bio.trim() || null,
+      });
+
+      if (profileError) {
+        throw new Error(profileError.message || "Failed to update profile.");
+      }
+
+      if (nextEmail && nextEmail !== user.email) {
+        const { error: authError } = await supabase.auth.updateUser({
+          email: nextEmail,
+        });
+
+        if (authError) {
+          throw new Error(
+            authError.message || "Failed to update authentication email.",
+          );
+        }
+
+        const { error: refreshError } = await supabase.auth.refreshSession();
+        if (refreshError) {
+          throw new Error(
+            "Failed to refresh session after email update. Please sign in again.",
+          );
+        }
+        const { data: refreshedUser } = await supabase.auth.getUser();
+
+        if (refreshedUser.user?.email) {
+          setProfileForm((prev) => ({
+            ...prev,
+            email: refreshedUser.user.email || prev.email,
+          }));
+        }
+      }
+
+      setProfileSuccess(
+        nextEmail && nextEmail !== user.email
+          ? "Profile updated. Check your email to confirm the new address."
+          : "Profile updated successfully.",
+      );
+    } catch (err) {
+      setProfileError(err instanceof Error ? err.message : "Update failed.");
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
+
   const initials = getInitials(profileForm.firstName, profileForm.lastName);
+  const avatarUrl = user?.avatarUrl || "";
+  const emailInitial = profileForm.email.trim().charAt(0).toUpperCase();
+  const avatarFallback = emailInitial || initials;
 
   const tabs = useMemo(
     () => [
@@ -181,19 +259,41 @@ export default function SettingsPage() {
                       Profile Information
                     </h2>
 
-                    <div className="space-y-6">
+                    <form onSubmit={handleProfileSubmit} className="space-y-6">
+                      {profileError && (
+                        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+                          {profileError}
+                        </div>
+                      )}
+
+                      {profileSuccess && (
+                        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
+                          {profileSuccess}
+                        </div>
+                      )}
                       <div className="flex items-center gap-6">
                         <motion.div
                           whileHover={{ scale: 1.05 }}
-                          className="w-20 h-20 rounded-full bg-gradient-to-br from-accent to-accent-light flex items-center justify-center text-white text-2xl font-bold cursor-pointer border-2 border-accent/30"
+                          className="w-20 h-20 rounded-full bg-gradient-to-br from-accent to-accent-light flex items-center justify-center text-white text-2xl font-bold cursor-pointer border-2 border-accent/30 overflow-hidden"
                         >
-                          {userLoading ? "" : initials}
+                          {userLoading ? (
+                            ""
+                          ) : avatarUrl ? (
+                            <img
+                              src={avatarUrl}
+                              alt="Profile avatar"
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            avatarFallback
+                          )}
                         </motion.div>
 
                         <div>
                           <motion.button
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
+                            type="button"
                             className="bg-accent text-white px-4 py-2 rounded-lg font-medium hover:bg-accent-light transition-colors"
                           >
                             Change Avatar
@@ -223,6 +323,7 @@ export default function SettingsPage() {
                             placeholder={
                               userLoading ? "Loading..." : "First name"
                             }
+                            disabled={userLoading || isSavingProfile}
                             className="w-full px-4 py-2 border border-soft rounded-lg focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20 transition-all"
                           />
                         </div>
@@ -244,9 +345,30 @@ export default function SettingsPage() {
                             placeholder={
                               userLoading ? "Loading..." : "Last name"
                             }
+                            disabled={userLoading || isSavingProfile}
                             className="w-full px-4 py-2 border border-soft rounded-lg focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20 transition-all"
                           />
                         </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Username
+                        </label>
+
+                        <input
+                          type="text"
+                          value={profileForm.username}
+                          onChange={(event) =>
+                            setProfileForm((prev) => ({
+                              ...prev,
+                              username: event.target.value,
+                            }))
+                          }
+                          placeholder={userLoading ? "Loading..." : "Username"}
+                          disabled={userLoading || isSavingProfile}
+                          className="w-full px-4 py-2 border border-soft rounded-lg focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20 transition-all"
+                        />
                       </div>
 
                       <div>
@@ -266,6 +388,7 @@ export default function SettingsPage() {
                           placeholder={
                             userLoading ? "Loading..." : "Email address"
                           }
+                          disabled={userLoading || isSavingProfile}
                           className="w-full px-4 py-2 border border-soft rounded-lg focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20 transition-all"
                         />
                       </div>
@@ -277,7 +400,15 @@ export default function SettingsPage() {
 
                         <textarea
                           rows={4}
+                          value={profileForm.bio}
+                          onChange={(event) =>
+                            setProfileForm((prev) => ({
+                              ...prev,
+                              bio: event.target.value,
+                            }))
+                          }
                           placeholder="Tell us about yourself..."
+                          disabled={userLoading || isSavingProfile}
                           className="w-full px-4 py-2 border border-soft rounded-lg focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20 transition-all resize-none"
                         />
                       </div>
@@ -285,11 +416,13 @@ export default function SettingsPage() {
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        className="bg-accent text-white px-6 py-2 rounded-lg font-medium hover:bg-accent-light transition-colors w-fit"
+                        type="submit"
+                        disabled={userLoading || isSavingProfile}
+                        className="bg-accent text-white px-6 py-2 rounded-lg font-medium hover:bg-accent-light transition-colors w-fit disabled:opacity-60"
                       >
-                        Save Changes
+                        {isSavingProfile ? "Saving..." : "Save Changes"}
                       </motion.button>
-                    </div>
+                    </form>
                   </motion.div>
                 )}
 
