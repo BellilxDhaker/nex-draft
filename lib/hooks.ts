@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { DEFAULT_PLAN, FEATURE_ACCESS } from "@/lib/plans";
 
@@ -20,93 +20,96 @@ export function useUser() {
   const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const isMountedRef = useRef(true);
 
-  useEffect(() => {
-    let isMounted = true;
+  const fetchUser = useCallback(async () => {
+    setLoading(true);
+    setError(null);
 
-    async function fetchUser() {
-      try {
-        const { data: authData, error: authError } =
-          await supabase.auth.getUser();
+    try {
+      const { data: authData, error: authError } =
+        await supabase.auth.getUser();
 
-        if (!isMounted) return;
+      if (!isMountedRef.current) return;
 
-        if (authError || !authData.user) {
-          setUser(null);
-          setLoading(false);
-          return;
-        }
+      if (authError || !authData.user) {
+        setUser(null);
+        setLoading(false);
+        return;
+      }
 
-        const authUser = authData.user;
-        const providerAvatar =
-          (authUser.user_metadata?.avatar_url as string | undefined) ||
-          (authUser.user_metadata?.picture as string | undefined) ||
-          (authUser.user_metadata?.image as string | undefined) ||
-          null;
+      const authUser = authData.user;
+      const providerAvatar =
+        (authUser.user_metadata?.avatar_url as string | undefined) ||
+        (authUser.user_metadata?.picture as string | undefined) ||
+        (authUser.user_metadata?.image as string | undefined) ||
+        null;
 
-        const { data: profileData, error: profileError } = await supabase
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select(
+          "id,email,first_name,last_name,username,bio,avatar_url,plan,is_onboarded",
+        )
+        .eq("id", authUser.id)
+        .maybeSingle();
+
+      let profile = profileData;
+
+      if (!profileData && !profileError) {
+        const { data: createdProfile, error: createError } = await supabase
           .from("profiles")
+          .upsert({
+            id: authUser.id,
+            email: authUser.email || null,
+            avatar_url: providerAvatar,
+          })
           .select(
             "id,email,first_name,last_name,username,bio,avatar_url,plan,is_onboarded",
           )
-          .eq("id", authUser.id)
-          .maybeSingle();
+          .single();
 
-        let profile = profileData;
-
-        if (!profileData && !profileError) {
-          const { data: createdProfile, error: createError } = await supabase
-            .from("profiles")
-            .upsert({
-              id: authUser.id,
-              email: authUser.email || null,
-              avatar_url: providerAvatar,
-            })
-            .select(
-              "id,email,first_name,last_name,username,bio,avatar_url,plan,is_onboarded",
-            )
-            .single();
-
-          if (createError) {
-            throw new Error(createError.message);
-          }
-
-          profile = createdProfile;
+        if (createError) {
+          throw new Error(createError.message);
         }
 
-        if (profileError) {
-          throw new Error(profileError.message);
-        }
+        profile = createdProfile;
+      }
 
-        if (authUser.email && profile?.email !== authUser.email) {
-          await supabase
-            .from("profiles")
-            .update({ email: authUser.email })
-            .eq("id", authUser.id);
-        }
+      if (profileError) {
+        throw new Error(profileError.message);
+      }
 
-        setUser({
-          id: authUser.id,
-          email: authUser.email || profile?.email || "",
-          firstName: profile?.first_name || "",
-          lastName: profile?.last_name || "",
-          username: profile?.username || null,
-          bio: profile?.bio || null,
-          avatarUrl: profile?.avatar_url || providerAvatar,
-          isOnboarded: Boolean(profile?.is_onboarded),
-          plan: profile?.plan || DEFAULT_PLAN,
-        });
-      } catch (err) {
-        if (isMounted) {
-          setError(err instanceof Error ? err.message : "An error occurred");
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+      if (authUser.email && profile?.email !== authUser.email) {
+        await supabase
+          .from("profiles")
+          .update({ email: authUser.email })
+          .eq("id", authUser.id);
+      }
+
+      setUser({
+        id: authUser.id,
+        email: authUser.email || profile?.email || "",
+        firstName: profile?.first_name || "",
+        lastName: profile?.last_name || "",
+        username: profile?.username || null,
+        bio: profile?.bio || null,
+        avatarUrl: profile?.avatar_url || providerAvatar,
+        isOnboarded: Boolean(profile?.is_onboarded),
+        plan: profile?.plan || DEFAULT_PLAN,
+      });
+    } catch (err) {
+      if (isMountedRef.current) {
+        setError(err instanceof Error ? err.message : "An error occurred");
+      }
+    } finally {
+      if (isMountedRef.current) {
+        setLoading(false);
       }
     }
+  }, []);
 
+  useEffect(() => {
+    isMountedRef.current = true;
     fetchUser();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(() => {
@@ -114,12 +117,12 @@ export function useUser() {
     });
 
     return () => {
-      isMounted = false;
+      isMountedRef.current = false;
       authListener?.subscription?.unsubscribe();
     };
-  }, []);
+  }, [fetchUser]);
 
-  return { user, loading, error };
+  return { user, loading, error, refreshUser: fetchUser };
 }
 
 export function useSubscription() {
