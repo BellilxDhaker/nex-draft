@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useUser } from "@/lib/hooks";
 import { supabase } from "@/lib/supabase/client";
@@ -21,9 +21,11 @@ import { supabase } from "@/lib/supabase/client";
 export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const pathname = usePathname();
   const router = useRouter();
-  const { user, loading: userLoading } = useUser();
+  const { user, loading: userLoading, refreshUser } = useUser();
 
   const displayName =
     [user?.firstName, user?.lastName].filter(Boolean).join(" ").trim() ||
@@ -98,6 +100,73 @@ export default function Sidebar() {
 
     router.push("/auth/login");
     router.refresh();
+  };
+
+  const handleAvatarChange = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    try {
+      setIsUploadingAvatar(true);
+
+      // Validate file type
+      const allowedTypes = ["image/png", "image/jpeg"];
+      if (!allowedTypes.includes(file.type)) {
+        alert("Please select a PNG or JPEG image");
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert("File size must be less than 5MB");
+        return;
+      }
+
+      const fileExt = file.type === "image/png" ? "png" : "jpg";
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      const filePath = `avatars/${fileName}`;
+
+      // Upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from("profiles")
+        .upload(filePath, file, { upsert: true, contentType: file.type });
+
+      if (uploadError) {
+        throw new Error(uploadError.message);
+      }
+
+      // Get public URL
+      const { data: publicData } = supabase.storage
+        .from("profiles")
+        .getPublicUrl(filePath);
+
+      const publicUrl = publicData.publicUrl;
+
+      // Update profile with new avatar URL
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ avatar_url: publicUrl })
+        .eq("id", user.id);
+
+      if (updateError) {
+        throw new Error(updateError.message);
+      }
+
+      // Refresh user data
+      await refreshUser();
+      router.refresh();
+    } catch (error) {
+      console.error("Avatar upload failed:", error);
+      alert(error instanceof Error ? error.message : "Failed to upload avatar");
+    } finally {
+      setIsUploadingAvatar(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
   };
   return (
     <motion.aside
@@ -229,25 +298,61 @@ export default function Sidebar() {
 
       {/* User Profile */}
       {!isCollapsed && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="px-4 py-4 border-t border-soft"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent to-accent-light flex items-center justify-center text-white font-bold text-sm">
-              {initials}
+        <>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/png,image/jpeg"
+            onChange={handleAvatarChange}
+            disabled={isUploadingAvatar}
+            className="hidden"
+          />
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploadingAvatar}
+            className="w-full px-4 py-4 border-t border-soft cursor-pointer hover:bg-gray-50 rounded-lg transition-colors text-left"
+          >
+            <div className="flex items-center gap-3">
+              <motion.div
+                whileHover={{ scale: 1.1 }}
+                className="w-10 h-10 rounded-full bg-gradient-to-br from-accent to-accent-light flex items-center justify-center text-white font-bold text-sm flex-shrink-0 overflow-hidden relative"
+              >
+                {user?.avatarUrl ? (
+                  <Image
+                    src={user.avatarUrl}
+                    alt={displayName}
+                    fill
+                    className="object-cover"
+                    priority
+                  />
+                ) : (
+                  initials
+                )}
+                {isUploadingAvatar && (
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity }}
+                      className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
+                    />
+                  </div>
+                )}
+              </motion.div>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-gray-900 truncate">
+                  {userLoading ? "Loading..." : displayName}
+                </p>
+                <p className="text-xs text-gray-600 truncate">
+                  {userLoading ? "Fetching profile" : email}
+                </p>
+              </div>
             </div>
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-gray-900 truncate">
-                {userLoading ? "Loading..." : displayName}
-              </p>
-              <p className="text-xs text-gray-600 truncate">
-                {userLoading ? "Fetching profile" : email}
-              </p>
-            </div>
-          </div>
-        </motion.div>
+          </motion.button>
+        </>
       )}
     </motion.aside>
   );
