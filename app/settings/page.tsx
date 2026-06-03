@@ -11,7 +11,7 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Sidebar from "@/components/layout/Sidebar";
 import { useUser } from "@/lib/hooks";
 import { supabase } from "@/lib/supabase/client";
@@ -39,7 +39,7 @@ const sessions: {
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("profile");
-  const { user, loading: userLoading } = useUser();
+  const { user, loading: userLoading, refreshUser } = useUser();
   const [profileForm, setProfileForm] = useState({
     firstName: "",
     lastName: "",
@@ -48,8 +48,10 @@ export default function SettingsPage() {
     bio: "",
   });
   const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [profileError, setProfileError] = useState("");
   const [profileSuccess, setProfileSuccess] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [selectedTheme, setSelectedTheme] = useState<ThemeType>("light");
 
@@ -143,6 +145,73 @@ export default function SettingsPage() {
       setProfileError(err instanceof Error ? err.message : "Update failed.");
     } finally {
       setIsSavingProfile(false);
+    }
+  };
+
+  const handleAvatarChange = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!user) {
+      setProfileError("You need to be signed in to update your avatar.");
+      return;
+    }
+
+    setProfileError("");
+    setProfileSuccess("");
+
+    try {
+      setIsUploadingAvatar(true);
+
+      const allowedTypes = ["image/png", "image/jpeg"];
+      if (!allowedTypes.includes(file.type)) {
+        throw new Error("Please select a PNG or JPEG image.");
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        throw new Error("File size must be less than 5MB.");
+      }
+
+      const fileExt = file.type === "image/png" ? "png" : "jpg";
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      const filePath = `avatars/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("profiles")
+        .upload(filePath, file, { upsert: true, contentType: file.type });
+
+      if (uploadError) {
+        throw new Error(uploadError.message);
+      }
+
+      const { data: publicData } = supabase.storage
+        .from("profiles")
+        .getPublicUrl(filePath);
+
+      const publicUrl = publicData.publicUrl;
+
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ avatar_url: publicUrl })
+        .eq("id", user.id);
+
+      if (updateError) {
+        throw new Error(updateError.message);
+      }
+
+      await refreshUser();
+      setProfileSuccess("Avatar updated successfully.");
+    } catch (err) {
+      setProfileError(
+        err instanceof Error ? err.message : "Failed to upload avatar.",
+      );
+    } finally {
+      setIsUploadingAvatar(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
   };
 
@@ -272,6 +341,14 @@ export default function SettingsPage() {
                         </div>
                       )}
                       <div className="flex items-center gap-6">
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/png,image/jpeg"
+                          onChange={handleAvatarChange}
+                          disabled={isUploadingAvatar || userLoading}
+                          className="hidden"
+                        />
                         <motion.div
                           whileHover={{ scale: 1.05 }}
                           className="w-20 h-20 rounded-full bg-gradient-to-br from-accent to-accent-light flex items-center justify-center text-white text-2xl font-bold cursor-pointer border-2 border-accent/30 overflow-hidden"
@@ -294,13 +371,17 @@ export default function SettingsPage() {
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={isUploadingAvatar || userLoading}
                             className="bg-accent text-white px-4 py-2 rounded-lg font-medium hover:bg-accent-light transition-colors"
                           >
-                            Change Avatar
+                            {isUploadingAvatar
+                              ? "Uploading..."
+                              : "Change Avatar"}
                           </motion.button>
 
                           <p className="text-sm text-gray-600 mt-2">
-                            JPG, PNG or GIF (max 5MB)
+                            JPG or PNG (max 5MB)
                           </p>
                         </div>
                       </div>
