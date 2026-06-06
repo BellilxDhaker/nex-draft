@@ -263,7 +263,7 @@ export default function Dashboard() {
                         Recent Projects
                       </h2>
 
-                      <Link href="/activity">
+                      <Link href="/projects">
                         <motion.button
                           whileHover={{ gap: "8px" }}
                           className="flex items-center gap-2 text-accent hover:text-accent-light transition-colors text-sm font-medium"
@@ -340,7 +340,7 @@ export default function Dashboard() {
                         Quick Templates
                       </h2>
 
-                      <Link href="/create">
+                      <Link href="/projects">
                         <motion.button
                           whileHover={{ gap: "8px" }}
                           className="flex items-center gap-2 text-accent hover:text-accent-light transition-colors text-sm font-medium"
