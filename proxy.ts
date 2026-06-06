@@ -11,7 +11,7 @@ function applySupabaseCookies(from: NextResponse, to: NextResponse) {
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  const protectedRoutes = ["/dashboard", "/onboarding", "/settings"];
+  const protectedRoutes = ["/dashboard", "/onboarding", "/settings", "/projects"];
 
   const isProtectedRoute = protectedRoutes.some(
     (route) => pathname === route || pathname.startsWith(`${route}/`),
