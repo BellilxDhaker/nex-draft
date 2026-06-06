@@ -64,6 +64,14 @@ export function OnboardingForm({ defaultName = "" }: OnboardingFormProps) {
         throw new Error(profileError.message);
       }
 
+      const { error: metadataError } = await supabase.auth.updateUser({
+        data: { isOnboarded: true },
+      });
+
+      if (metadataError) {
+        throw new Error(metadataError.message);
+      }
+
       router.push("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
