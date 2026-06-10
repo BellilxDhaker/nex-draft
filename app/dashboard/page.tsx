@@ -421,90 +421,164 @@ export default function Dashboard() {
                     </Link>
                   </motion.div>
 
-                  {/* Notifications */}
-                  <div className="bg-white rounded-lg border border-soft overflow-hidden shadow-sm">
+                  {/* Recent Activity */}
+                  <div className="bg-white rounded-xl border border-soft overflow-hidden shadow-sm">
                     <div className="px-6 py-4 border-b border-soft">
                       <h3 className="text-lg font-bold text-primary flex items-center gap-2">
-                        <Bell className="w-5 h-5" />
-                        Notifications
+                        <Activity className="w-5 h-5" />
+                        Recent Activity
                       </h3>
                     </div>
 
-                    <div className="divide-y divide-soft">
-                      {notifications.map((notif, index) => (
-                        <motion.div
-                          key={notif.id}
-                          initial={{ opacity: 0, x: 20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: index * 0.1 }}
-                          className="px-6 py-4 hover:bg-bg-light transition-colors"
-                        >
-                          <p className="text-sm font-medium text-gray-900">
-                            {notif.message}
-                          </p>
-
-                          <p className="text-xs text-gray-600 mt-1">
-                            {notif.time}
-                          </p>
-                        </motion.div>
-                      ))}
-                    </div>
+                    {isLoading ? (
+                      <div className="p-6 space-y-4">
+                        {[1, 2, 3].map((i) => (
+                          <div key={i} className="animate-pulse space-y-1">
+                            <div className="h-3 bg-gray-200 rounded w-full" />
+                            <div className="h-2 bg-gray-200 rounded w-1/4" />
+                          </div>
+                        ))}
+                      </div>
+                    ) : notifications.length === 0 ? (
+                      <div className="p-8 text-center">
+                        <Activity className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+                        <p className="text-sm text-gray-500">
+                          No recent activity
+                        </p>
+                        <p className="text-xs text-gray-400 mt-1">
+                          Create a project to see activity here
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="divide-y divide-soft">
+                        {notifications.map((notif, index) => (
+                          <motion.div
+                            key={notif.id}
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.1 }}
+                            className="px-6 py-4 hover:bg-bg-light transition-colors"
+                          >
+                            <div className="flex items-start gap-3">
+                              <div className="p-1.5 bg-blue-100 rounded-full mt-0.5">
+                                <FileText className="w-3.5 h-3.5 text-blue-600" />
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium text-gray-900">
+                                  {notif.message}
+                                </p>
+                                <p className="text-xs text-gray-500 mt-0.5">
+                                  {notif.time}
+                                </p>
+                              </div>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   {/* Subscription */}
-                  <div className="bg-white rounded-lg border border-soft overflow-hidden shadow-sm">
+                  <div className="bg-white rounded-xl border border-soft overflow-hidden shadow-sm">
                     <div className="px-6 py-4 border-b border-soft">
                       <h3 className="text-lg font-bold text-primary">
-                        Subscription Status
+                        Subscription
                       </h3>
                     </div>
 
                     <div className="p-6">
                       <div className="flex items-center justify-between mb-4">
                         <div>
-                          <p className="font-semibold text-gray-900">
-                            Pro Plan
+                          <p className="font-semibold text-gray-900 text-lg">
+                            {planDetails.name} Plan
                           </p>
 
-                          <p className="text-sm text-gray-600">
-                            Unlimited AI generations
+                          <p className="text-sm text-gray-500">
+                            {subStatus === "canceled"
+                              ? "Subscription canceled"
+                              : isPremium
+                                ? "All features unlocked"
+                                : "Upgrade for more"}
                           </p>
                         </div>
 
-                        <Star className="w-6 h-6 text-yellow-500 fill-yellow-500" />
+                        {isPremium ? (
+                          <div className="p-2 bg-yellow-100 rounded-lg">
+                            <Star className="w-5 h-5 text-yellow-600 fill-yellow-600" />
+                          </div>
+                        ) : (
+                          <div className="p-2 bg-gray-100 rounded-lg">
+                            <Lock className="w-5 h-5 text-gray-400" />
+                          </div>
+                        )}
                       </div>
 
-                      <div className="space-y-3 text-sm text-gray-700">
-                        <div className="flex items-center gap-2">
-                          <Cpu className="w-4 h-4 text-accent" />
-                          AI-powered generation
+                      {subscription?.current_period_end && isPremium && (
+                        <p className="text-xs text-gray-500 mb-4">
+                          Current period ends{" "}
+                          {new Date(
+                            subscription.current_period_end,
+                          ).toLocaleDateString()}
+                        </p>
+                      )}
+
+                      <div className="space-y-3 text-sm">
+                        {planDetails.features.map((feature, i) => (
+                          <div
+                            key={i}
+                            className="flex items-center gap-2 text-gray-700"
+                          >
+                            <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
+                            {feature}
+                          </div>
+                        ))}
+
+                        <div className="flex items-center gap-2 text-gray-700">
+                          <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
+                          {planDetails.requestLimit === Infinity
+                            ? "Unlimited requests"
+                            : `${planDetails.requestLimit.toLocaleString()} requests/mo`}
                         </div>
 
-                        <div className="flex items-center gap-2">
-                          <Download className="w-4 h-4 text-accent" />
-                          Unlimited exports
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <Lock className="w-4 h-4 text-accent" />
-                          Private workspace
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <Eye className="w-4 h-4 text-accent" />
-                          Advanced analytics
+                        <div className="flex items-center gap-2 text-gray-700">
+                          <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
+                          {planDetails.storageLimit === Infinity
+                            ? "Unlimited storage"
+                            : `${planDetails.storageLimit}GB storage`}
                         </div>
                       </div>
 
-                      <Link href="/settings">
-                        <motion.button
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          className="w-full mt-6 bg-accent/10 hover:bg-accent/20 text-accent font-medium py-2 rounded-lg transition-colors"
-                        >
-                          Manage Subscription
-                        </motion.button>
-                      </Link>
+                      {subStatus === "canceled" ? (
+                        <Link href="/settings">
+                          <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="w-full mt-6 bg-accent text-white font-medium py-2.5 rounded-lg hover:bg-accent-light transition-colors"
+                          >
+                            Resubscribe
+                          </motion.button>
+                        </Link>
+                      ) : isPremium ? (
+                        <Link href="/settings">
+                          <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="w-full mt-6 bg-accent/10 hover:bg-accent/20 text-accent font-medium py-2.5 rounded-lg transition-colors"
+                          >
+                            Manage Subscription
+                          </motion.button>
+                        </Link>
+                      ) : (
+                        <Link href="/settings">
+                          <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="w-full mt-6 bg-accent text-white font-medium py-2.5 rounded-lg hover:bg-accent-light transition-colors"
+                          >
+                            Upgrade to Pro
+                          </motion.button>
+                        </Link>
+                      )}
                     </div>
                   </div>
                 </motion.div>
