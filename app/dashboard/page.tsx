@@ -19,7 +19,12 @@ import {
   ImageIcon,
 } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import Sidebar from "@/components/layout/Sidebar";
+import { useUser } from "@/lib/hooks";
+import { getProjects, Project } from "@/lib/projects";
+import { getSubscription, Subscription } from "@/lib/subscriptions";
+import { getPlanDetails } from "@/lib/plans";
 
 function timeAgo(date: Date): string {
   const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
@@ -47,50 +52,46 @@ const itemVariants = {
 };
 
 export default function Dashboard() {
-  const notifications = [
-    {
-      id: "1",
-      message: "AI finished generating your restaurant menu",
-      time: "2 minutes ago",
-    },
-    {
-      id: "2",
-      message: "Sarah commented on Product Presentation",
-      time: "1 hour ago",
-    },
-    {
-      id: "3",
-      message: "Your PDF export is ready to download",
-      time: "3 hours ago",
-    },
-  ];
+  const { user, loading: userLoading } = useUser();
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [projectsLoading, setProjectsLoading] = useState(true);
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [subLoading, setSubLoading] = useState(true);
 
-  const recentProjects = [
-    {
-      id: "1",
-      title: "Restaurant Menu Design",
-      category: "Design",
-      lastEdited: "2 hours ago",
-      status: "In Progress",
-      progress: 78,
-    },
-    {
-      id: "2",
-      title: "Social Media Campaign",
-      category: "Marketing",
-      lastEdited: "Yesterday",
-      status: "Completed",
-      progress: 100,
-    },
-    {
-      id: "3",
-      title: "Investor Pitch Deck",
-      category: "Presentation",
-      lastEdited: "3 days ago",
-      status: "Draft",
-      progress: 35,
-    },
-  ];
+  useEffect(() => {
+    getProjects()
+      .then(setProjects)
+      .catch(() => {})
+      .finally(() => setProjectsLoading(false));
+
+    getSubscription()
+      .then(setSubscription)
+      .catch(() => {})
+      .finally(() => setSubLoading(false));
+  }, []);
+
+  const isLoading = userLoading || projectsLoading || subLoading;
+
+  const recentProjects = projects.slice(0, 5);
+  const projectCount = projects.length;
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const activeCount = projects.filter(
+    (p) => new Date(p.updated_at) > thirtyDaysAgo,
+  ).length;
+  const domainsCount = new Set(
+    projects.map((p) => p.domain).filter(Boolean),
+  ).size;
+  const plan = subscription?.plan || user?.plan || "FREE";
+  const planDetails = getPlanDetails(plan);
+  const isPremium = plan === "PRO" || plan === "ENTERPRISE";
+  const subStatus = subscription?.status || "active";
+
+  const notifications = recentProjects.map((p) => ({
+    id: p.id,
+    message: `Created "${p.title}"`,
+    time: timeAgo(new Date(p.created_at)),
+  }));
 
   const TemplateIcon = ({ name }: { name: string }) => {
     switch (name) {
@@ -116,40 +117,30 @@ export default function Dashboard() {
 
   const stats = [
     {
-      label: "Projects",
-      value: "24",
-      icon: FileText,
-      colorClasses: {
-        bg: "bg-blue-100",
-        text: "text-blue-600",
-      },
+      label: "Total Projects",
+      value: String(projectCount),
+      icon: Folder,
+      colorClasses: { bg: "bg-blue-100", text: "text-blue-600" },
     },
     {
-      label: "AI Generations",
-      value: "148",
-      icon: Cpu,
-      colorClasses: {
-        bg: "bg-cyan-100",
-        text: "text-cyan-600",
-      },
+      label: "Active (30d)",
+      value: String(activeCount),
+      icon: Activity,
+      colorClasses: { bg: "bg-green-100", text: "text-green-600" },
     },
     {
-      label: "Downloads",
-      value: "89",
-      icon: Download,
-      colorClasses: {
-        bg: "bg-green-100",
-        text: "text-green-600",
-      },
+      label: "Domains",
+      value: String(domainsCount),
+      icon: Globe,
+      colorClasses: { bg: "bg-purple-100", text: "text-purple-600" },
     },
     {
-      label: "Subscription",
-      value: "Pro",
-      icon: Star,
-      colorClasses: {
-        bg: "bg-yellow-100",
-        text: "text-yellow-600",
-      },
+      label: "Plan",
+      value: planDetails.name,
+      icon: isPremium ? Star : User,
+      colorClasses: isPremium
+        ? { bg: "bg-yellow-100", text: "text-yellow-600" }
+        : { bg: "bg-gray-100", text: "text-gray-600" },
     },
   ];
 
@@ -169,20 +160,24 @@ export default function Dashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-bold text-primary">Dashboard</h1>
-                <p className="text-gray-600 mt-1">
-                  Welcome back to your workspace
+                <p className="text-gray-500 mt-1">
+                  {user
+                    ? `Welcome back${user.firstName ? `, ${user.firstName}` : ""}`
+                    : "Welcome back to your workspace"}
                 </p>
               </div>
 
               <div className="flex items-center gap-4">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="relative p-2 hover:bg-bg-light rounded-lg transition-colors"
-                >
-                  <Bell className="w-6 h-6 text-primary" />
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-                </motion.button>
+                <Link href="/create">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="flex items-center gap-2 bg-accent hover:bg-accent-light text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium"
+                  >
+                    <Plus className="w-4 h-4" />
+                    New Project
+                  </motion.button>
+                </Link>
 
                 <Link href="/settings">
                   <motion.button
@@ -219,21 +214,25 @@ export default function Dashboard() {
                     <motion.div
                       key={index}
                       whileHover={{ y: -5 }}
-                      className="bg-white rounded-lg p-6 border border-soft shadow-sm hover:shadow-md transition-shadow"
+                      className="bg-white rounded-xl p-6 border border-soft shadow-sm hover:shadow-md transition-all"
                     >
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-gray-600 text-sm font-medium">
+                          <p className="text-gray-500 text-sm font-medium">
                             {stat.label}
                           </p>
 
-                          <p className="text-2xl font-bold text-primary mt-2">
-                            {stat.value}
+                          <p className="text-3xl font-bold text-primary mt-2">
+                            {isLoading ? (
+                              <span className="inline-block w-12 h-8 bg-gray-200 rounded animate-pulse" />
+                            ) : (
+                              stat.value
+                            )}
                           </p>
                         </div>
 
                         <motion.div
-                          whileHover={{ scale: 1.1 }}
+                          whileHover={{ scale: 1.1, rotate: 5 }}
                           className={`p-3 rounded-lg ${stat.colorClasses.bg}`}
                         >
                           <IconComponent
@@ -254,7 +253,7 @@ export default function Dashboard() {
                   className="lg:col-span-2 space-y-6"
                 >
                   {/* Recent Projects */}
-                  <div className="bg-white rounded-lg border border-soft overflow-hidden shadow-sm">
+                  <div className="bg-white rounded-xl border border-soft overflow-hidden shadow-sm">
                     <div className="px-6 py-4 border-b border-soft flex items-center justify-between">
                       <h2 className="text-xl font-bold text-primary">
                         Recent Projects
@@ -271,73 +270,86 @@ export default function Dashboard() {
                       </Link>
                     </div>
 
-                    <div className="divide-y divide-soft">
-                      {recentProjects.map((project, index) => (
-                        <motion.div
-                          key={project.id}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: index * 0.1 }}
-                          whileHover={{ backgroundColor: "#f7f9fc" }}
-                          className="px-6 py-4 cursor-pointer transition-colors"
-                        >
-                          <div className="flex items-start justify-between mb-3">
-                            <div>
-                              <h3 className="font-semibold text-gray-900">
-                                {project.title}
-                              </h3>
-
-                              <p className="text-sm text-gray-600">
-                                {project.category}
-                              </p>
-                            </div>
-
-                            <span
-                              className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                project.status === "In Progress"
-                                  ? "bg-blue-100 text-blue-700"
-                                  : project.status === "Draft"
-                                    ? "bg-yellow-100 text-yellow-700"
-                                    : "bg-green-100 text-green-700"
-                              }`}
+                    {isLoading ? (
+                      <div className="p-6 space-y-4">
+                        {[1, 2, 3].map((i) => (
+                          <div key={i} className="animate-pulse space-y-2">
+                            <div className="h-4 bg-gray-200 rounded w-3/4" />
+                            <div className="h-3 bg-gray-200 rounded w-1/4" />
+                          </div>
+                        ))}
+                      </div>
+                    ) : recentProjects.length === 0 ? (
+                      <div className="p-12 text-center">
+                        <Folder className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold text-gray-600 mb-2">
+                          No projects yet
+                        </h3>
+                        <p className="text-gray-500 mb-6">
+                          Create your first project to get started
+                        </p>
+                        <Link href="/create">
+                          <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="inline-flex items-center gap-2 bg-accent text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-accent-light transition-colors"
+                          >
+                            <Plus className="w-4 h-4" />
+                            Create Project
+                          </motion.button>
+                        </Link>
+                      </div>
+                    ) : (
+                      <div className="divide-y divide-soft">
+                        {recentProjects.map((project, index) => (
+                          <Link key={project.id} href={`/projects/${project.id}`}>
+                            <motion.div
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: index * 0.05 }}
+                              whileHover={{ backgroundColor: "#f7f9fc" }}
+                              className="px-6 py-4 cursor-pointer transition-colors"
                             >
-                              {project.status}
-                            </span>
-                          </div>
-
-                          <div className="flex items-center justify-between gap-4">
-                            <div className="flex-1">
-                              <div className="w-full bg-gray-200 rounded-full h-2">
-                                <div
-                                  className="bg-gradient-to-r from-accent to-accent-light h-2 rounded-full"
-                                  style={{
-                                    width: `${project.progress}%`,
-                                  }}
-                                />
+                              <div className="flex items-start justify-between mb-2">
+                                <div>
+                                  <h3 className="font-semibold text-gray-900">
+                                    {project.title}
+                                  </h3>
+                                  {project.domain && (
+                                    <p className="text-sm text-gray-500 mt-0.5">
+                                      {project.domain}
+                                    </p>
+                                  )}
+                                </div>
                               </div>
-                            </div>
 
-                            <span className="text-xs text-gray-600 font-medium">
-                              {project.progress}%
-                            </span>
-                          </div>
-
-                          <p className="text-xs text-gray-500 mt-3">
-                            Last edited {project.lastEdited}
-                          </p>
-                        </motion.div>
-                      ))}
-                    </div>
+                              <div className="flex items-center gap-4 text-xs text-gray-500">
+                                <span className="flex items-center gap-1">
+                                  <Clock className="w-3.5 h-3.5" />
+                                  {timeAgo(new Date(project.created_at))}
+                                </span>
+                                {project.goals && (
+                                  <span className="flex items-center gap-1">
+                                    <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
+                                    Has goals
+                                  </span>
+                                )}
+                              </div>
+                            </motion.div>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   {/* Quick Templates */}
-                  <div className="bg-white rounded-lg border border-soft overflow-hidden shadow-sm">
+                  <div className="bg-white rounded-xl border border-soft overflow-hidden shadow-sm">
                     <div className="px-6 py-4 border-b border-soft flex items-center justify-between">
                       <h2 className="text-xl font-bold text-primary">
                         Quick Templates
                       </h2>
 
-                      <Link href="/projects">
+                      <Link href="/projects/new">
                         <motion.button
                           whileHover={{ gap: "8px" }}
                           className="flex items-center gap-2 text-accent hover:text-accent-light transition-colors text-sm font-medium"
@@ -386,9 +398,9 @@ export default function Dashboard() {
                   {/* Create New */}
                   <motion.div
                     whileHover={{ scale: 1.02 }}
-                    className="bg-gradient-to-br from-accent to-accent-light rounded-lg p-6 text-white shadow-lg"
+                    className="bg-gradient-to-br from-accent to-accent-light rounded-xl p-6 text-white shadow-lg"
                   >
-                    <Plus className="w-8 h-8 mb-3" />
+                    <Sparkles className="w-8 h-8 mb-3" />
 
                     <h3 className="text-lg font-bold mb-2">
                       Create Something New
