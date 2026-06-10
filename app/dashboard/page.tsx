@@ -2,23 +2,49 @@
 
 import { motion } from "framer-motion";
 import {
-  BarChart3,
   ChevronRight,
   Star,
-  Bell,
   Plus,
-  Cpu,
   FileText,
-  Share2,
-  Presentation,
-  ImageIcon,
   User,
-  Download,
-  Eye,
+  Folder,
+  Activity,
+  Globe,
+  Clock,
   Lock,
+  Sparkles,
+  CheckCircle2,
+  Presentation,
+  Share2,
+  ImageIcon,
 } from "lucide-react";
 import Link from "next/link";
 import Sidebar from "@/components/layout/Sidebar";
+
+function timeAgo(date: Date): string {
+  const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (seconds < 60) return "just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  return date.toLocaleDateString();
+}
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1, delayChildren: 0.2 },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+};
 
 export default function Dashboard() {
   const notifications = [
@@ -66,35 +92,26 @@ export default function Dashboard() {
     },
   ];
 
+  const TemplateIcon = ({ name }: { name: string }) => {
+    switch (name) {
+      case "PRD Doc":
+        return <FileText className="w-8 h-8 text-blue-600" />;
+      case "Menu Design":
+        return <ImageIcon className="w-8 h-8 text-purple-600" />;
+      case "Pitch Deck":
+        return <Presentation className="w-8 h-8 text-green-600" />;
+      case "Social Post":
+        return <Share2 className="w-8 h-8 text-orange-600" />;
+      default:
+        return <FileText className="w-8 h-8 text-gray-600" />;
+    }
+  };
+
   const templates = [
-    {
-      id: "1",
-      name: "PRD Doc",
-      category: "Document",
-      icon: "📄",
-      premium: false,
-    },
-    {
-      id: "2",
-      name: "Menu Design",
-      category: "Design",
-      icon: "🍽️",
-      premium: true,
-    },
-    {
-      id: "3",
-      name: "Pitch Deck",
-      category: "Presentation",
-      icon: "📊",
-      premium: false,
-    },
-    {
-      id: "4",
-      name: "Social Post",
-      category: "Social",
-      icon: "📱",
-      premium: true,
-    },
+    { id: "1", name: "PRD Doc", category: "Document", premium: false },
+    { id: "2", name: "Menu Design", category: "Design", premium: true },
+    { id: "3", name: "Pitch Deck", category: "Presentation", premium: false },
+    { id: "4", name: "Social Post", category: "Social", premium: true },
   ];
 
   const stats = [
@@ -135,26 +152,6 @@ export default function Dashboard() {
       },
     },
   ];
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.5 },
-    },
-  };
 
   return (
     <div className="flex h-screen bg-bg-light">
@@ -361,13 +358,15 @@ export default function Dashboard() {
                           whileHover={{ y: -5 }}
                           className="bg-bg-light rounded-lg p-4 border border-soft cursor-pointer hover:border-accent transition-colors text-center"
                         >
-                          <div className="text-3xl mb-2">{template.icon}</div>
+                          <div className="mb-3 flex justify-center">
+                            <TemplateIcon name={template.name} />
+                          </div>
 
                           <h3 className="text-sm font-semibold text-gray-900 truncate">
                             {template.name}
                           </h3>
 
-                          <p className="text-xs text-gray-600 mt-1">
+                          <p className="text-xs text-gray-500 mt-1">
                             {template.category}
                           </p>
 
