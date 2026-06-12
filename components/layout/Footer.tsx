@@ -1,37 +1,48 @@
 "use client";
 
 import Image from "next/image";
-import { Mail, Moon, Link as LinkIcon, Share2, Sun } from "lucide-react";
+import Link from "next/link";
+import { Mail, Link as LinkIcon, Share2 } from "lucide-react";
 
 export default function Footer() {
-  const productLinks = ["Features", "Pricing", "How It Works"];
-  const companyLinks = ["About", "Blog", "Contact"];
-  const legalLinks = ["Privacy", "Terms", "Security"];
+  const productLinks = [
+    { label: "Features", href: "/product" },
+    { label: "Pricing", href: "/#pricing" },
+    { label: "Integrations", href: "/product#integrations" },
+    { label: "Changelog", href: "/resources#changelog" },
+  ];
+  const resourcesLinks = [
+    { label: "Documentation", href: "/docs" },
+    { label: "Guides", href: "/resources#guides" },
+    { label: "Tutorials", href: "/resources#tutorials" },
+    { label: "API Reference", href: "/docs#api" },
+  ];
+  const companyLinks = [
+    { label: "About", href: "#" },
+    { label: "Blog", href: "/resources#blog" },
+    { label: "Case Studies", href: "/resources#case-studies" },
+    { label: "Contact", href: "#" },
+  ];
+  const legalLinks = [
+    { label: "Privacy", href: "#" },
+    { label: "Terms", href: "#" },
+    { label: "Security", href: "#" },
+  ];
 
   return (
-    <footer className="bg-bg-light border-t border-soft">
+    <footer className="bg-white border-t border-soft">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10">
         <div className="pt-8 pb-6 lg:pt-10 lg:pb-8">
           <div className="grid gap-8 lg:gap-8 sm:grid-cols-2 lg:grid-cols-[1.6fr_repeat(3,1fr)]">
             <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-full bg-gradient-to-br  transparent flex items-center justify-center shadow-sm">
-                  <Image
-                    src="/NexDraftLogo.png"
-                    alt="NexDraft logo"
-                    width={28}
-                    height={28}
-                  />
-                </div>
-                <div>
-                  <p className="text-lg font-semibold text-slate-900 tracking-tight">
-                    NexDraft
-                  </p>
-                  <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
-                    AI Documentation
-                  </p>
-                </div>
-              </div>
+              <Image
+                src="/NexDraftTitle.png"
+                alt="NexDraft"
+                height={36}
+                width={126}
+                priority
+                style={{ width: "auto", height: "36px" }}
+              />
               <p className="text-sm leading-relaxed text-slate-500 max-w-sm">
                 Transform product ideas into engineering-ready documentation
                 with calm, AI-guided drafting built for modern teams.
@@ -61,13 +72,31 @@ export default function Footer() {
               </p>
               <ul className="space-y-1 text-sm text-slate-500">
                 {productLinks.map((link) => (
-                  <li key={link}>
-                    <a
-                      href="#"
+                  <li key={link.label}>
+                    <Link
+                      href={link.href}
                       className="transition-colors duration-200 hover:text-slate-700"
                     >
-                      {link}
-                    </a>
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                Resources
+              </p>
+              <ul className="space-y-1 text-sm text-slate-500">
+                {resourcesLinks.map((link) => (
+                  <li key={link.label}>
+                    <Link
+                      href={link.href}
+                      className="transition-colors duration-200 hover:text-slate-700"
+                    >
+                      {link.label}
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -79,12 +108,12 @@ export default function Footer() {
               </p>
               <ul className="space-y-1 text-sm text-slate-500">
                 {companyLinks.map((link) => (
-                  <li key={link}>
+                  <li key={link.label}>
                     <a
-                      href="#"
+                      href={link.href}
                       className="transition-colors duration-200 hover:text-slate-700"
                     >
-                      {link}
+                      {link.label}
                     </a>
                   </li>
                 ))}
@@ -97,12 +126,12 @@ export default function Footer() {
               </p>
               <ul className="space-y-1 text-sm text-slate-500">
                 {legalLinks.map((link) => (
-                  <li key={link}>
+                  <li key={link.label}>
                     <a
-                      href="#"
+                      href={link.href}
                       className="transition-colors duration-200 hover:text-slate-700"
                     >
-                      {link}
+                      {link.label}
                     </a>
                   </li>
                 ))}
